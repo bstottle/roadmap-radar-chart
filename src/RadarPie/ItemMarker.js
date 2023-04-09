@@ -33,8 +33,6 @@ export class ItemMarker extends NameSpaced {
     }
   }
 
-  getElement(groupName);
-  getElement(groupIdx);
   getElement(group) {
     let groupIdx, groupName;
     if (typeof group === "string") {
