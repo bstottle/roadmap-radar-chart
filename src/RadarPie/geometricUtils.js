@@ -49,20 +49,35 @@ export function getSvgBBox(svgEl) {
   return bb;
 }
 
-export function getPolygonBBox(poly) {
-  const bounds = geometric.polygonBounds(poly);
-  const topLeftX = bounds[0][0];
-  const topLeftY = bounds[0][1];
-  const bottomRightX = bounds[1][0];
-  const bottomRightY = bounds[1][1];
-  const width = Math.abs(topLeftX - bottomRightX);
-  const height = Math.abs(topLeftY - bottomRightY);
+export function getBoundingBox(points) {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
 
-  const bBox = [...bounds, [bounds[1][0], bounds[0][1]], [bounds[0][0], bounds[1][1]]];
+  points.forEach(point => {
+    const [x, y] = point;
+
+    if (x < minX) minX = x;
+    if (y < minY) minY = y;
+    if (x > maxX) maxX = x;
+    if (y > maxY) maxY = y;
+  });
+
+  return [[minX, minY], [maxX, maxY]]
+}
+
+export function getPolygonBBox(poly) {
+  const bounds = getBoundingBox(poly);
+  const bottomLeftX = bounds[0][0];
+  const bottomLeftY = bounds[0][1];
+  const topRightX = bounds[1][0];
+  const topRightY = bounds[1][1];
+  const width = Math.abs(topRightX - bottomLeftX);
+  const height = Math.abs(topRightY - bottomLeftY);
 
   return {
-    topLeft: [topLeftX, topLeftY],
-    bBox,
+    bottomLeft: [bottomLeftX, bottomLeftY],
     width,
     height,
     area: width * height,
@@ -81,7 +96,8 @@ export function getClosestPointOnPath(pathString, point) {
   pathNode.setAttributeNS(null, "d", pathString);
 
   const pathLength = pathNode.getTotalLength();
-  let precision = (pathLength / pathNode.getPathData().length) * 0.125; // getPathData is new in SVG spec: see polyfill import
+  // let precision = (pathLength / pathNode.getPathData().length) * 0.125; // getPathData is new in SVG spec: see polyfill import
+  let precision = (pathLength / 3) * 0.125; // getPathData fails
   let best;
   let bestLength;
   let bestDistance = Infinity;
@@ -230,8 +246,8 @@ export function spreadPoints(boundaryPolygonPoints, polygonPathString, bBox, min
   for (let col = 0; col < cols; col++) {
     for (let row = 0; row < rows; row++) {
       const point = [
-        xSpacing / 2 + col * xSpacing + bBox.topLeft[0],
-        ySpacing / 2 + row * ySpacing + bBox.topLeft[1],
+        xSpacing / 2 + col * xSpacing + bBox.bottomLeft[0],
+        ySpacing / 2 + row * ySpacing + bBox.bottomLeft[1],
       ];
       if (d3.polygonContains(boundaryPolygonPoints, point)) {
         pointsInside.push({ point, distance: -getClosestPointOnPath(polygonPathString, point).distance });
