@@ -216,7 +216,7 @@ export class RadarPie extends D3Element {
           .append("text")
           .classed("slice-label-text", true)
           .classed("label-text", true)
-          .text((d) => d.label)
+          .text((d) => d.id)
           .style("text-anchor", (d) => d.labelData.labelPlacement.hAnchor)
           .style("dominant-baseline", (d) => d.labelData.labelPlacement.vAnchor)
       );

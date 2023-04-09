@@ -60,7 +60,7 @@ export class RingLegend extends D3Element {
       .attr("text-anchor", "middle")
       .attr("x", (d) => this.arcGenerator.centroid(d)[0])
       .attr("y", (d) => this.arcGenerator.centroid(d)[1])
-      .text((d, idx) => this.rings[idx].label);
+      .text((d, idx) => this.rings[idx].id);
 
     return legendGroup;
   }

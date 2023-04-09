@@ -73,7 +73,7 @@ export class ItemMarker extends NameSpaced {
         toolTipEl.html(
           `<span class="item-tooltip-label">${d.label}</span>` +
             `<span class="item-tooltip-group">${d.groupName}</span>` +
-            `<span class="item-tooltip-ring">${d.ringLabel}</span>` +
+            `<span class="item-tooltip-ring">${d.ringId}</span>` +
             `<span class="item-tooltip-description"> ${d.description} </span>`
         );
         // .render();
