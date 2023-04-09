@@ -1,25 +1,5 @@
 import { degToRad } from "./geometricUtils.js";
 
-export interface TextPlacement {
-  hAnchor: "middle" | "start" | "end";
-
-  // http://bl.ocks.org/eweitnauer/7325338
-  vAnchor:
-    | "alphabetic"
-    | "ideographic"
-    | "hanging"
-    | "mathematical"
-    | "middle"
-    | "central"
-    | "text-before-edge"
-    | "text-after-edge";
-}
-
-// https://stackoverflow.com/questions/47914536/use-partial-in-nested-property-with-typescript
-export type RecursivePartial<T> = {
-  [P in keyof T]?: RecursivePartial<T[P]>;
-};
-
 /**
  * Recursively assigns properties form source object to target object.
  *  eg: nestedAssign( { a: 1, b: { x: 1}}, { b: {y:1} } )
@@ -33,7 +13,7 @@ export type RecursivePartial<T> = {
  * @param {S} source
  * @returns {T}
  */
-export function nestedAssign<T extends Object, S extends Object>(_target: T, source: S): T {
+export function nestedAssign(_target, source) {
   if (!Array.isArray(source) && typeof source !== "object" && source !== undefined)
     throw new Error("nestedAssign received an invalid source type: " + typeof source);
 
@@ -64,7 +44,7 @@ export function nestedAssign<T extends Object, S extends Object>(_target: T, sou
  * @param {number} [targetMinValue=0]
  * @returns
  */
-export function scaleProportional(items: number[], targetTotal: number, targetMinValue = 0) {
+export function scaleProportional(items, targetTotal, targetMinValue = 0) {
   const PRECISION = 10000;
   const itemsSum = items.reduce((a, b) => a + b, 0);
   const scaled = items.map((r, i, a) => (targetTotal * r) / itemsSum);
@@ -102,20 +82,16 @@ export function scaleProportional(items: number[], targetTotal: number, targetMi
  *                          v: from which angle switch b/w baseline / hanging / middle at the right/left of the circle
  * @returns {TextPlacement}
  */
-export function calculateAnchorPlacement(
-  startOrMidAngle: number,
-  endAngle?: number,
-  cutOffDegree: { h: number; v: number } = { h: 7, v: 45 }
-): TextPlacement {
+export function calculateAnchorPlacement(startOrMidAngle, endAngle, cutOffDegree = { h: 7, v: 45 }) {
   {
-    let rads: number;
+    let rads;
 
     if (!endAngle) rads = startOrMidAngle;
     else rads = (endAngle - startOrMidAngle) / 2 + startOrMidAngle;
 
     if (rads > degToRad(360) || rads < 0) throw new Error("Invalid rads for calculateAnchorPlacement: " + rads);
 
-    const anchor = <TextPlacement>{};
+    const anchor = {};
     // circle top section
     if (rads > degToRad(360 - cutOffDegree.h) || rads < degToRad(cutOffDegree.h)) anchor.hAnchor = "middle";
     // bottom section

@@ -8,22 +8,7 @@ import { ItemLegend, ItemLegendConfig } from "./ItemLegend.js";
 import { RadarPie, RadarPieConfig } from "./RadarPie.js";
 import { RingLegend, RingLegendConfig } from "./RingLegend.js";
 
-export type ContainerConfig = {
-  width: number;
-  height: number;
-  center: { x: number; y: number };
-
-  padding: number; // adjusting padding in css causing  auto scaling issues
-};
-
-export type RadarConfig = {
-  container: RecursivePartial<ContainerConfig>;
-  pie: RecursivePartial<RadarPieConfig>;
-  itemLegend: RecursivePartial<ItemLegendConfig>;
-  ringLegend: RecursivePartial<RingLegendConfig>;
-};
-
-export const DEFAULT_CONTAINER_CONFIG: ContainerConfig = {
+export const DEFAULT_CONTAINER_CONFIG = {
   width: 900,
   height: 500,
   center: { x: 450, y: 250 }, // transform svg center to this point (new 0,0)
@@ -31,21 +16,12 @@ export const DEFAULT_CONTAINER_CONFIG: ContainerConfig = {
 };
 
 export class RadarContainer {
-  config: RecursivePartial<RadarConfig>;
-
-  radarPie: RadarPie;
-  itemLegend: ItemLegend;
-  ringLegend: RingLegend;
-
-  dataSource: RadarDataSource;
-  radarContent: RadarContentProcessed;
-
-  constructor(config: RecursivePartial<RadarConfig> = {}) {
+  constructor(config = {}) {
     this.config = Object.assign({}, config);
 
     this.config.container = nestedAssign(DEFAULT_CONTAINER_CONFIG, this.config.container);
 
-    const defaultItemLegend: Partial<ItemLegendConfig> = {
+    const defaultItemLegend = {
       pos: {
         x: (this.config.container.width / 8) * 5,
         y: 30,
@@ -53,7 +29,7 @@ export class RadarContainer {
     };
     this.config.itemLegend = nestedAssign(defaultItemLegend, this.config.itemLegend);
 
-    const defaultRingLegend: Partial<RingLegendConfig> = {
+    const defaultRingLegend = {
       pos: {
         x: (this.config.container.width / 8) * 5 + 50,
         y: 0,
@@ -62,7 +38,7 @@ export class RadarContainer {
     this.config.ringLegend = nestedAssign(defaultRingLegend, this.config.ringLegend);
   }
 
-  public async fetchData(dataSource: RadarDataSource): Promise<RadarContentProcessed> {
+  async fetchData(dataSource) {
     this.dataSource = dataSource;
 
     await this.dataSource.fetchData();
@@ -71,7 +47,7 @@ export class RadarContainer {
     return this.radarContent;
   }
 
-  public async appendTo(element: HTMLElement) {
+  async appendTo(element) {
     const svgElement = select(element)
       .append("svg")
       .classed("radar-svg-container", true)
@@ -105,12 +81,7 @@ export class RadarContainer {
     return radarContainerGroup;
   }
 
-  static scaleToFit(
-    el: d3.Selection<SVGGElement, unknown, HTMLElement, unknown>,
-    newWidth: number,
-    newHeight: number,
-    padding: number
-  ) {
+  static scaleToFit(el, newWidth, newHeight, padding) {
     const node = el.node();
     const bb = node.getBBox();
 

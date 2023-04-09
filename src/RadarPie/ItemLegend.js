@@ -4,16 +4,7 @@ import { CatInfo } from "../DataSource/RadarDataSource.js";
 import { D3Element } from "../D3Element.js";
 import { nestedAssign, RecursivePartial } from "../utils.js";
 
-export type ItemLegendConfig = {
-  pos: {
-    x: number;
-    y: number;
-  };
-  itemSpacing: number;
-  bBoxPadding: number;
-};
-
-const DEFAULT_ITEM_LEGEND_CONFIG: ItemLegendConfig = {
+const DEFAULT_ITEM_LEGEND_CONFIG = {
   // pos defaults set in RadarContainer!
   pos: {
     x: null,
@@ -24,18 +15,14 @@ const DEFAULT_ITEM_LEGEND_CONFIG: ItemLegendConfig = {
 };
 
 export class ItemLegend extends D3Element {
-  readonly groups: CatInfo[];
-  itemMarker: ItemMarker;
-  config: ItemLegendConfig;
-
-  constructor(groups: CatInfo[], itemMarker: ItemMarker, config?: RecursivePartial<ItemLegendConfig>) {
+  constructor(groups, itemMarker, config) {
     super();
     this.groups = groups;
     this.itemMarker = itemMarker;
     this.config = nestedAssign(DEFAULT_ITEM_LEGEND_CONFIG, config);
   }
 
-  public getElement() {
+  getElement() {
     const legendGroup = create(this.namespace + "svg")
       .style("overflow", "visible")
       .datum(this.config)

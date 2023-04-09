@@ -7,20 +7,8 @@ import { CatInfo } from "../DataSource/RadarDataSource.js";
 import { nestedAssign } from "../utils.js";
 import { RadarItem } from "./RadarPie.js";
 
-export type ItemMarkerConfig = {
-  size: number;
-  symbolType: d3.SymbolType;
-  colorScheme: {
-    categorical: readonly string[]; // used when items less than categories https://github.com/d3/d3-scale-chromatic#categorical
-    diverging: (t: number) => string; // used when items more than categories  https://github.com/d3/d3-scale-chromatic#diverging
-  };
-  toolTipOpacity: number;
-};
-
-type ColorScaleFunc = d3.ScaleSequential<string, never> | d3.ScaleOrdinal<number, string, never>;
-
 // used to create itemMarker object when no itemMarker provided in constructor
-export const DEFAULT_ITEM_MARKER_CONFIG: ItemMarkerConfig = {
+export const DEFAULT_ITEM_MARKER_CONFIG = {
   size: 80,
   symbolType: symbolTriangle,
   colorScheme: {
@@ -33,12 +21,7 @@ export const DEFAULT_ITEM_MARKER_CONFIG: ItemMarkerConfig = {
 };
 
 export class ItemMarker extends NameSpaced {
-  readonly groups: CatInfo[];
-  config: ItemMarkerConfig;
-  symbol: d3.Symbol<any, any>;
-  groupColorScale: ColorScaleFunc;
-
-  constructor(groups: CatInfo[], config?: Partial<ItemMarkerConfig>) {
+  constructor(groups, config) {
     super();
     this.groups = groups;
 
@@ -56,10 +39,10 @@ export class ItemMarker extends NameSpaced {
     }
   }
 
-  public getElement(groupName: string): d3.Selection<Element, undefined, null, undefined>;
-  public getElement(groupIdx: number): d3.Selection<Element, undefined, null, undefined>;
-  public getElement(group: number | string) {
-    let groupIdx: number, groupName: string;
+  getElement(groupName);
+  getElement(groupIdx);
+  getElement(group) {
+    let groupIdx, groupName;
     if (typeof group === "string") {
       groupName = group;
       groupIdx = this.groups.findIndex((it) => it.id === group);
@@ -77,7 +60,7 @@ export class ItemMarker extends NameSpaced {
     return el;
   }
 
-  public getMultipleElements(items: RadarItem[]) {
+  getMultipleElements(items) {
     // TODO: this group is redundant is svg structure, remove it.
     const markersGroup = create(this.namespace + "g").classed("item-markers", true);
 

@@ -11,22 +11,7 @@ import { polygonArea, polygonContains } from "d3-polygon";
 import "path-data-polyfill";
 import { RadarError } from "./Errors.js";
 
-export type Point = [number, number];
-
-export type PointDistance = {
-  point: Point;
-  distance: number;
-};
-
-export type BBox = {
-  topLeft: Point;
-  width: number;
-  height: number;
-  area: number;
-  bBox: geometric.Polygon;
-};
-
-export function degToRad(degrees: number): number {
+export function degToRad(degrees) {
   return (degrees * Math.PI) / 180;
 }
 
@@ -43,14 +28,7 @@ export function degToRad(degrees: number): number {
  *   }} sourcePoint Coordinates in the sourceElement { x: number, y: number}
  * @returns
  */
-export function transformElementPoint(
-  sourceElement: SVGGraphicsElement | SVGSVGElement,
-  targetElement: SVGGraphicsElement | SVGSVGElement,
-  sourcePoint: {
-    x: number;
-    y: number;
-  }
-) {
+export function transformElementPoint(sourceElement, targetElement, sourcePoint) {
   let pt = new DOMPoint(sourcePoint.x, sourcePoint.y);
 
   pt = pt.matrixTransform(targetElement.getScreenCTM().inverse().multiply(sourceElement.getScreenCTM()));
@@ -66,7 +44,7 @@ export function transformElementPoint(
  * @param {SVGGraphicsElement} svgEl
  * @returns
  */
-export function getSvgBBox(svgEl: SVGGraphicsElement) {
+export function getSvgBBox(svgEl) {
   if (document.contains(svgEl)) {
     return svgEl.getBBox();
   }
@@ -75,14 +53,14 @@ export function getSvgBBox(svgEl: SVGGraphicsElement) {
   document.body.appendChild(tempDiv);
   const tempSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   tempDiv.appendChild(tempSvg);
-  const tempEl = svgEl.cloneNode(true) as SVGGraphicsElement;
+  const tempEl = svgEl.cloneNode(true);
   tempSvg.appendChild(tempEl);
   const bb = tempEl.getBBox();
   document.body.removeChild(tempDiv);
   return bb;
 }
 
-export function getPolygonBBox(poly: geometric.Polygon): BBox {
+export function getPolygonBBox(poly) {
   const bounds = geometric.polygonBounds(poly);
   const topLeftX = bounds[0][0];
   const topLeftY = bounds[0][1];
@@ -91,7 +69,7 @@ export function getPolygonBBox(poly: geometric.Polygon): BBox {
   const width = Math.abs(topLeftX - bottomRightX);
   const height = Math.abs(topLeftY - bottomRightY);
 
-  const bBox = [...bounds, [bounds[1][0], bounds[0][1]], [bounds[0][0], bounds[1][1]]] as geometric.Polygon;
+  const bBox = [...bounds, [bounds[1][0], bounds[0][1]], [bounds[0][0], bounds[1][1]]];
 
   return {
     topLeft: [topLeftX, topLeftY],
@@ -102,30 +80,25 @@ export function getPolygonBBox(poly: geometric.Polygon): BBox {
   };
 }
 
-export function getPointsDistance(a: Point, b: Point): number {
+export function getPointsDistance(a, b) {
   const xDiff = a[0] - b[0];
   const yDiff = a[1] - b[1];
 
   return Math.sqrt(xDiff * xDiff + yDiff * yDiff);
 }
 
-export function getClosestPointOnPath(pathString: string, point: Point): PointDistance {
-  // const pathNode = d3
-  //   .create("svg:path")
-  //   .call((el) => el.attr("d", pathString))
-  //   .node() as SVGPathElement; //  NewSVGPathElement is a workaround to make typing work with path-data-polyfill
-
+export function getClosestPointOnPath(pathString, point) {
   const pathNode = window.document.createElementNS("http://www.w3.org/2000/svg", "path");
   pathNode.setAttributeNS(null, "d", pathString);
 
   const pathLength = pathNode.getTotalLength();
   let precision = (pathLength / pathNode.getPathData().length) * 0.125; // getPathData is new in SVG spec: see polyfill import
-  let best: DOMPoint;
-  let bestLength: number;
+  let best;
+  let bestLength;
   let bestDistance = Infinity;
 
   // linear scan for coarse approximation
-  for (let scan: DOMPoint, scanLength = 0, scanDistance: number; scanLength <= pathLength; scanLength += precision) {
+  for (let scan, scanLength = 0, scanDistance; scanLength <= pathLength; scanLength += precision) {
     if ((scanDistance = distance2((scan = pathNode.getPointAtLength(scanLength)))) < bestDistance) {
       (best = scan), (bestLength = scanLength), (bestDistance = scanDistance);
     }
@@ -134,19 +107,17 @@ export function getClosestPointOnPath(pathString: string, point: Point): PointDi
   // binary search for precise estimate
   precision *= 0.5;
   while (precision > 0.5) {
-    let before: DOMPoint,
-      after: DOMPoint,
-      beforeLength: number,
-      afterLength: number,
-      beforeDistance: number,
-      afterDistance: number;
+    let before, after, beforeLength, afterLength, beforeDistance, afterDistance;
+    beforeLength = bestLength - precision;
+    afterLength = bestLength + precision;
+
     if (
-      (beforeLength = bestLength - precision) >= 0 &&
+      beforeLength >= 0 &&
       (beforeDistance = distance2((before = pathNode.getPointAtLength(beforeLength)))) < bestDistance
     ) {
       (best = before), (bestLength = beforeLength), (bestDistance = beforeDistance);
     } else if (
-      (afterLength = bestLength + precision) <= pathLength &&
+      afterLength <= pathLength &&
       (afterDistance = distance2((after = pathNode.getPointAtLength(afterLength)))) < bestDistance
     ) {
       (best = after), (bestLength = afterLength), (bestDistance = afterDistance);
@@ -155,7 +126,7 @@ export function getClosestPointOnPath(pathString: string, point: Point): PointDi
     }
   }
 
-  const bestRet = { point: [best.x, best.y] as Point, distance: Math.sqrt(bestDistance) };
+  const bestRet = { point: [best.x, best.y], distance: Math.sqrt(bestDistance) };
 
   return bestRet;
 
@@ -165,29 +136,6 @@ export function getClosestPointOnPath(pathString: string, point: Point): PointDi
     return dx * dx + dy * dy;
   }
 }
-
-type AdaptiveLinearizationOptions = {
-  /** Approximation scale: Higher is better quality  */
-  approximationScale?: number; // default: 1
-
-  /**  Limit to disregard the curve distance at */
-  curve_distance_epsilon?: number; // default: 1e-30;
-
-  /** Limit to disregard colinearity at */
-  curveColinearityEpsilon?: number; // default:1e-30;
-
-  /** Limit disregard angle tolerance */
-  curveAngleToleranceEpsilon?: number; // default: 0.01;
-
-  /** Angle tolerance, higher is better quality */
-  angleTolerance?: number; // default:0.4;
-
-  /** Hard recursion subdivision limit */
-  recursionLimit?: number; // default:32;
-
-  /** Limit for curve cusps: 0 = off (range: 0 to pi) */
-  cuspLimit?: number; // default: 0;
-};
 
 /**
  * Converts an SVG path to points of a polygon.
@@ -204,13 +152,10 @@ type AdaptiveLinearizationOptions = {
  * @param {AdaptiveLinearizationOptions} [options={ approximationScale: 0.1 }]
  * @returns {Point[]} Array of polygon points
  */
-export function flattenSVGPath(
-  SVGPathString: string,
-  options: AdaptiveLinearizationOptions = { approximationScale: 0.2 }
-): Point[] {
-  const points: Point[] = [];
+export function flattenSVGPath(SVGPathString, options = { approximationScale: 0.2 }) {
+  const points = [];
 
-  const al = new AdaptiveLinearization((x1: number, y1: number, x2: number, y2: number) => {
+  const al = new AdaptiveLinearization((x1, y1, x2, y2) => {
     // if (points.length === 0) points.push([x1, y1]);
     points.push([x2, y2]);
   }, options);
@@ -220,13 +165,13 @@ export function flattenSVGPath(
   return points;
 }
 
-export function distributePointsWithinBoundary(boundaryPolygonPoints: Point[], pointsCount: number) {
+export function distributePointsWithinBoundary(boundaryPolygonPoints, pointsCount) {
   const POINT_DENSITY = 0.8; // higher: points  more spread out. lower: points denser towards polygon center
   const MAX_ITERATION_COUNT = 20; // give up if we can't enough points
 
-  const points: Point[] = new Array(pointsCount);
+  const points = new Array(pointsCount);
 
-  let bBox: BBox;
+  let bBox;
   try {
     bBox = getPolygonBBox(boundaryPolygonPoints);
   } catch (error) {
@@ -280,22 +225,22 @@ export function distributePointsWithinBoundary(boundaryPolygonPoints: Point[], p
   return points;
 }
 
-export function pointsToPathString(points: Point[], closePath = true) {
+export function pointsToPathString(points, closePath = true) {
   const closeChar = closePath ? " Z" : "";
   const pathString = "M" + points.map((point) => point.join(",")).join(" ") + closeChar;
 
   return pathString;
 }
 
-function spreadPoints(boundaryPolygonPoints: Point[], polygonPathString: string, bBox: BBox, minPoints: number) {
-  const pointsInside: PointDistance[] = []; // [x, y, distance from centroid]
+export function spreadPoints(boundaryPolygonPoints, polygonPathString, bBox, minPoints) {
+  const pointsInside = []; // [x, y, distance from centroid]
   const cols = Math.ceil(Math.sqrt((bBox.width * minPoints) / bBox.height));
   const rows = Math.ceil(Math.sqrt((bBox.height * minPoints) / bBox.width));
   const xSpacing = Math.floor(bBox.width / cols);
   const ySpacing = Math.floor(bBox.height / rows);
   for (let col = 0; col < cols; col++) {
     for (let row = 0; row < rows; row++) {
-      const point: Point = [
+      const point = [
         xSpacing / 2 + col * xSpacing + bBox.topLeft[0],
         ySpacing / 2 + row * ySpacing + bBox.topLeft[1],
       ];

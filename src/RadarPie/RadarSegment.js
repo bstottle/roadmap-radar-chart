@@ -16,19 +16,7 @@ const PAD_INNER_RADIUS = SYMBOL_BOUND_RADIUS;
 const PAD_OUTER_RADIUS = -SYMBOL_BOUND_RADIUS;
 
 export class RadarSegment extends D3Element {
-  segment: Segment;
-  ringRadius: number;
-
-  itemMarker: ItemMarker;
-
-  arcCentroid: Point;
-  opacity: number;
-
-  //   arcCentroid: Point;
-  arcPathString: string;
-  itemBoundaryPolygonPoints: Point[];
-
-  constructor(segment: Readonly<Segment>, rings: Readonly<RingInfo[]>) {
+  constructor(segment, rings) {
     super();
     this.segment = segment;
 
@@ -52,7 +40,7 @@ export class RadarSegment extends D3Element {
       this.segment.items[0].x = this.arcCentroid[0];
       this.segment.items[0].y = this.arcCentroid[1];
     } else if (this.segment.items.length > 0) {
-      distributePointsWithinBoundary(this.itemBoundaryPolygonPoints, segment.items.length).forEach((p: Point, idx) => {
+      distributePointsWithinBoundary(this.itemBoundaryPolygonPoints, segment.items.length).forEach((p, idx) => {
         this.segment.items[idx].x = p[0];
         this.segment.items[idx].y = p[1];
       });
@@ -76,12 +64,7 @@ export class RadarSegment extends D3Element {
     return segmentGroup;
   }
 
-  static getItemBoundaryArc(
-    arcParams: d3.DefaultArcObject,
-    paddingAngle: number,
-    padInnerRadius: number,
-    padOuterRadius: number
-  ) {
+  static getItemBoundaryArc(arcParams, paddingAngle, padInnerRadius, padOuterRadius) {
     const arcGenerator = arc();
 
     const arcPathString = arcGenerator(arcParams);

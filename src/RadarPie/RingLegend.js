@@ -6,15 +6,7 @@ import { degToRad } from "../geometricUtils.js";
 import { nestedAssign, RecursivePartial } from "../utils.js";
 import { RingInfo } from "./RadarPie.js";
 
-export type RingLegendConfig = {
-  pos: { x: number; y: number };
-  scale: number;
-  startAngle: number;
-  endAngle: number;
-  bBoxPadding: number;
-};
-
-const DEFAULT_RING_LEGEND_CONFIG: RingLegendConfig = {
+const DEFAULT_RING_LEGEND_CONFIG = {
   // pos defaults set in RadarContainer!
   pos: {
     x: null,
@@ -27,12 +19,7 @@ const DEFAULT_RING_LEGEND_CONFIG: RingLegendConfig = {
 };
 
 export class RingLegend extends D3Element {
-  rings: RingInfo[];
-  config: RingLegendConfig;
-  arcs: d3.DefaultArcObject[];
-  arcGenerator: d3.Arc<any, d3.DefaultArcObject>;
-
-  constructor(rings: RingInfo[], config?: RecursivePartial<RingLegendConfig>) {
+  constructor(rings, config) {
     super();
     this.rings = rings;
     this.config = nestedAssign(DEFAULT_RING_LEGEND_CONFIG, config);

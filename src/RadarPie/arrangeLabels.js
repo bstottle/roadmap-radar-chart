@@ -6,37 +6,7 @@ import { ItemLegendConfig } from "./ItemLegend.js";
 import { Slice, SubSlice } from "./RadarPie.js";
 import { rectForceCollide } from "./rectForceCollide.js";
 
-export interface BBoxRect {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  padding: number;
-}
-
-interface LabelBoxedData {
-  x: number; // box center coordinates required by force Collide
-  y: number;
-  width: number;
-  height: number;
-  origBBox: BBoxRect;
-  isSubLabel: boolean;
-  containerTopLeftOffset: { x: number; y: number };
-  isAnchor: false;
-}
-
-interface AnchorData {
-  x: number;
-  y: number;
-  fx: number;
-  fy: number;
-  containerTopLeftOffset: { x: number; y: number };
-  isAnchor: true;
-}
-
-export function arrangeLabels(
-  containerEl: d3.Selection<any, any, any, any>
-): Promise<d3.Selection<any, any, any, any>> {
+export function arrangeLabels(containerEl) {
   return new Promise((resolve) => {
     // const containerEl
     if (!document.contains(containerEl.node())) {
@@ -45,12 +15,7 @@ export function arrangeLabels(
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Calculate bounding boxes, create rects and bind data
-    const elementsToArrange: d3.Selection<
-      SVGGraphicsElement,
-      Slice | SubSlice | ItemLegendConfig,
-      any,
-      any
-    > = containerEl.selectAll(".label, .item-legend-group, .ring-legend-group");
+    const elementsToArrange = containerEl.selectAll(".label, .item-legend-group, .ring-legend-group");
 
     elementsToArrange.each((d, i, g) => {
       const el = select(g[i]);
@@ -58,7 +23,7 @@ export function arrangeLabels(
 
       const bBox = elNode.getBBox();
 
-      let padding: number;
+      let padding;
 
       if ("labelData" in d) {
         padding = d.labelData.bBoxPadding;
@@ -80,14 +45,14 @@ export function arrangeLabels(
       const transformedBBoxCenter = transformElementPoint(
         // we need to pick an element within the svg container element otherwise FireFox getScreeCTM doesn't work
         //    https://bugzilla.mozilla.org/show_bug.cgi?id=849203#c5
-        el.select("text").node() as SVGGraphicsElement,
+        el.select("text").node(),
         containerEl.node(),
         bBoxCenter
       );
 
       const svgBBoxTopLeft = { x: parseFloat(el.attr("x")), y: parseFloat(el.attr("y")) };
 
-      const labelBoxedData: LabelBoxedData = {
+      const labelBoxedData = {
         x: transformedBBoxCenter.x,
         y: transformedBBoxCenter.y,
         width: paddedBBox.width,
@@ -124,8 +89,8 @@ export function arrangeLabels(
     // Setup simulation.
     const containerBBox = containerEl.node().getBBox();
     const labelBBoxesSelection = containerEl.selectAll(".label, .item-legend-group, .ring-legend-group");
-    const bBoxes = labelBBoxesSelection.data() as LabelBoxedData[];
-    const labelAnchorPoints: AnchorData[] = (labelBBoxesSelection.data() as LabelBoxedData[]).map((d) => {
+    const bBoxes = labelBBoxesSelection.data();
+    const labelAnchorPoints = (labelBBoxesSelection.data()).map((d) => {
       return {
         x: d.x, // We will set up forces to pull the bBoxes
         y: d.y,
@@ -151,21 +116,18 @@ export function arrangeLabels(
         "forceXRight",
         isolate(
           forceX(containerBBox.x + containerBBox.width).strength(0.1),
-          (d) => d.x > 0 && !d.isAnchor && !(d as LabelBoxedData).isSubLabel
+          (d) => d.x > 0 && !d.isAnchor && !(d).isSubLabel
         )
       )
       .force(
         "forceXLeft",
         isolate(
           forceX(containerBBox.x).strength(0.1),
-          (d) => d.x < 0 && !d.isAnchor && !(d as LabelBoxedData).isSubLabel
+          (d) => d.x < 0 && !d.isAnchor && !(d).isSubLabel
         )
       );
 
-    function isolate(
-      force: Force<LabelBoxedData | AnchorData, any>,
-      filter: (node: LabelBoxedData | AnchorData) => boolean
-    ) {
+    function isolate(force, filter) {
       const initialize = force.initialize;
       force.initialize = () => initialize.call(force, simNodes.filter(filter));
       return force;
@@ -200,7 +162,7 @@ export function arrangeLabels(
 /////////////////////////////////////////////////////////////////////////
 // for debugging
 /////////////////////////////////////////////////////////////////////////
-function addDebugGroup(el: d3.Selection<any, any, any, any>, simNodes: (LabelBoxedData | AnchorData)[]) {
+function addDebugGroup(el, simNodes) {
   const debugGroup = el.append("g").classed("label-debug-group", true);
 
   debugGroup
@@ -216,8 +178,8 @@ function addDebugGroup(el: d3.Selection<any, any, any, any>, simNodes: (LabelBox
     .attr("cy", (d) => d.y - d.containerTopLeftOffset.y);
 }
 
-function updateDebugElements(el: d3.Selection<any, any, any, any>) {
-  (el.selectAll(".label-debug-point-anchor") as d3.Selection<any, LabelBoxedData | AnchorData, any, any>)
+function updateDebugElements(el) {
+  (el.selectAll(".label-debug-point-anchor"))
     .attr("cx", (d) => d.x - d.containerTopLeftOffset.x)
     .attr("cy", (d) => d.y - d.containerTopLeftOffset.y);
 }

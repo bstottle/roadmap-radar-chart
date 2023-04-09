@@ -6,7 +6,6 @@
 //////////////
 
 import { quadtree } from "d3-quadtree";
-type Rect = { x: number; y: number; width: number; height: number };
 
 /**
  *
@@ -22,9 +21,9 @@ type Rect = { x: number; y: number; width: number; height: number };
  * @returns
  */
 export function rectForceCollide(collidePadding = 10) {
-  let nodes: Rect[];
+  let nodes;
 
-  function force(alpha: number) {
+  function force(alpha) {
     const quad = quadtree(
       nodes,
       (d) => d.x,
@@ -36,12 +35,7 @@ export function rectForceCollide(collidePadding = 10) {
         let updated = false;
         if (_q.length) return updated; // internal node (not leaf)
 
-        const q = _q as d3.QuadtreeLeaf<{
-          x: number;
-          y: number;
-          width: number;
-          height: number;
-        }>;
+        const q = _q;
 
         if (q.data && q.data !== d) {
           let x = d.x - q.data.x;
@@ -50,7 +44,7 @@ export function rectForceCollide(collidePadding = 10) {
           const ySpacing = collidePadding + (q.data.height + d.height) / 2;
           const absX = Math.abs(x);
           const absY = Math.abs(y);
-          let l: number, lx: number, ly: number;
+          let l, lx, ly;
 
           if (absX < xSpacing && absY < ySpacing) {
             l = Math.sqrt(x * x + y * y);
@@ -77,7 +71,7 @@ export function rectForceCollide(collidePadding = 10) {
     });
   }
 
-  force.initialize = (_: any) => (nodes = _);
+  force.initialize = (_) => (nodes = _);
 
   return force;
 }

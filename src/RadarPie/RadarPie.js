@@ -23,32 +23,7 @@ import {
   TextPlacement,
 } from "../utils.js";
 
-export type RadarPieConfig = {
-  outerRadius: number;
-  innerRadius: number;
-
-  minSubSliceAngle: number; // in degrees
-
-  slicePadAngle: number;
-  subSlicePadAngle: number;
-
-  sliceDividerOutFlowLength: number;
-  subSliceDividerOutFlowLength: number;
-
-  sliceLabelDistance: number;
-  subSliceLabelDistance: number;
-  sliceLabelPadding: number;
-  subSliceLabelPadding: number;
-
-  minRingRadius: number;
-  ringPadding: number;
-  ringMinOpacity: number;
-  ringMaxOpacity: number;
-
-  itemMarker: Partial<ItemMarkerConfig> | ItemMarker;
-};
-
-export const DEFAULT_RADAR_PIE_CONFIG: RadarPieConfig = {
+export const DEFAULT_RADAR_PIE_CONFIG = {
   outerRadius: 250,
   innerRadius: 2,
 
@@ -73,65 +48,8 @@ export const DEFAULT_RADAR_PIE_CONFIG: RadarPieConfig = {
   itemMarker: DEFAULT_ITEM_MARKER_CONFIG,
 };
 
-export interface SubSliceArcData extends d3.DefaultArcObject {
-  data: CatInfoSubSlice;
-}
-
-export interface RadarItem extends RadarItemProcessed {
-  x?: number;
-  y?: number;
-}
-
-interface LabelData {
-  // middle of the arc in subSliceLabelDistance or sliceLabel distance from the outer perimeter
-  // actual anchoring position of the label is calculated after rendering (based on textAnchor and label bBox)
-  x: number;
-  y: number;
-  bBoxPadding: number;
-  labelPlacement: TextPlacement;
-  dividerLine: { x1: number; y1: number; x2: number; y2: number };
-}
-
-interface SliceLabelData extends LabelData {
-  midAngle: number;
-}
-
-export interface Segment extends SegmentProcessed {
-  items: RadarItem[];
-  arcParams?: d3.DefaultArcObject;
-}
-
-export interface SubSlice extends SubSliceProcessed {
-  arcParams?: d3.DefaultArcObject;
-  labelData?: LabelData;
-  segments: Segment[];
-}
-
-export interface Slice extends SliceProcessed {
-  labelData?: SliceLabelData;
-  subSlices: SubSlice[];
-}
-
-export interface RingInfo extends CatInfo {
-  opacity?: number;
-  innerRadius?: number;
-  radius?: number;
-}
-
-interface RadarContent {
-  slices: Slice[];
-  subSlices: CatInfoSubSlice[];
-  rings: RingInfo[];
-  groups: CatInfo[];
-  items: RadarItem[];
-}
-
 export class RadarPie extends D3Element {
-  radarContent: RadarContent;
-  config: RadarPieConfig;
-  itemMarker: ItemMarker;
-
-  constructor(radarContentInput: Readonly<RadarContentProcessed>, config?: Readonly<RecursivePartial<RadarPieConfig>>) {
+  constructor(radarContentInput, config) {
     super();
     this.radarContent = radarContentInput;
     this.config = nestedAssign(DEFAULT_RADAR_PIE_CONFIG, config);
@@ -185,9 +103,7 @@ export class RadarPie extends D3Element {
       .value((d, idx) => scaledSubSlices[idx])
       .padAngle(degToRad(this.config.subSlicePadAngle));
 
-    const subSliceArcs = (subSliceGen(
-      (this.radarContent.subSlices as unknown) as number[]
-    ) as unknown) as SubSliceArcData[]; // we are passing CatInfoSubSlice[], it seems to be a @types/d3 issue
+    const subSliceArcs = (subSliceGen((this.radarContent.subSlices))); // we are passing CatInfoSubSlice[], it seems to be a @types/d3 issue
 
     subSliceArcs.forEach((arc) => {
       arc.innerRadius = this.config.innerRadius;
@@ -271,7 +187,7 @@ export class RadarPie extends D3Element {
     console.log("radarContent", this.radarContent);
   } // end constructor
 
-  public getElement() {
+  getElement() {
     const pieGroup = create(this.namespace + "g").classed("radar-pie-group", true);
 
     ////////////////////////////////////////////////////////////////////////
@@ -328,7 +244,7 @@ export class RadarPie extends D3Element {
     //  add subSlice separator lines
 
     // TODO: make subSlice node the same in radarContent.slices so it's not needed
-    const subSlices: SubSlice[] = this.radarContent.slices.reduce((acc, slice) => {
+    const subSlices = this.radarContent.slices.reduce((acc, slice) => {
       acc.push(...slice.subSlices);
       return acc;
     }, []);
