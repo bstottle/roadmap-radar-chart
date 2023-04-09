@@ -1,14 +1,10 @@
-import "d3-transition"; // required otherwise d3.select(..).transition won't work
-import { select } from "d3-selection";
-import { RadarContentProcessed, RadarDataSource } from "../DataSource/RadarDataSource.js";
-import { RadarError } from "../Errors.js";
-import { nestedAssign, RecursivePartial } from "../utils.js";
+import { nestedAssign } from "./utils.js";
 import { arrangeLabels } from "./arrangeLabels.js";
-import { ItemLegend, ItemLegendConfig } from "./ItemLegend.js";
-import { RadarPie, RadarPieConfig } from "./RadarPie.js";
-import { RingLegend, RingLegendConfig } from "./RingLegend.js";
+import { ItemLegend } from "./ItemLegend.js";
+import { RadarPie } from "./RadarPie.js";
+import { RingLegend } from "./RingLegend.js";
 
-export const DEFAULT_CONTAINER_CONFIG = {
+const DEFAULT_CONTAINER_CONFIG = {
   width: 900,
   height: 500,
   center: { x: 450, y: 250 }, // transform svg center to this point (new 0,0)
@@ -16,7 +12,8 @@ export const DEFAULT_CONTAINER_CONFIG = {
 };
 
 export class RadarContainer {
-  constructor(config = {}) {
+  constructor(radarContent, config = {}) {
+    this.radarContent = radarContent;
     this.config = Object.assign({}, config);
 
     this.config.container = nestedAssign(DEFAULT_CONTAINER_CONFIG, this.config.container);
@@ -38,22 +35,11 @@ export class RadarContainer {
     this.config.ringLegend = nestedAssign(defaultRingLegend, this.config.ringLegend);
   }
 
-  async fetchData(dataSource) {
-    this.dataSource = dataSource;
-
-    await this.dataSource.fetchData();
-    this.radarContent = this.dataSource.getRadarContent();
-
-    return this.radarContent;
-  }
-
   async appendTo(element) {
-    const svgElement = select(element)
+    const svgElement = d3.select(element)
       .append("svg")
       .classed("radar-svg-container", true)
       .attr("viewBox", `0 0 ${this.config.container.width} ${this.config.container.height}`);
-
-    if (!this.dataSource && !this.radarContent) throw new RadarError("Call fetchData before calling getElement");
 
     const radarContainerGroup = svgElement
       .append("g")

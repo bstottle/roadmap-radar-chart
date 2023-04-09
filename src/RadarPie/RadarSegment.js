@@ -2,13 +2,9 @@
 //     - make padding size params (SYMBOL_BOUND_RADIUS) dependent on marker size
 //   *  - generic container polygon offsetting (padding / shrinking )
 //             instead of tampering with arc params):  polygon-offset package buggy. what else?
-import { create } from "d3-selection";
-import { arc } from "d3-shape";
-import { D3Element } from "../D3Element.js";
 
-import { distributePointsWithinBoundary, flattenSVGPath, Point } from "../geometricUtils.js";
-import { ItemMarker } from "./ItemMarker.js";
-import { RingInfo, Segment } from "./RadarPie.js";
+import { D3Element } from "./D3Element.js";
+import { distributePointsWithinBoundary } from "./geometricUtils.js";
 
 const SYMBOL_BOUND_RADIUS = 6;
 const PADDING_ANGLE = (3 * Math.PI) / 180;
@@ -22,7 +18,7 @@ export class RadarSegment extends D3Element {
 
     this.opacity = rings[this.segment.ringLevel].opacity;
 
-    const arcGenerator = arc();
+    const arcGenerator = d3.arc();
     this.arcPathString = arcGenerator(this.segment.arcParams);
     this.arcCentroid = arcGenerator.centroid(this.segment.arcParams);
 
@@ -48,7 +44,7 @@ export class RadarSegment extends D3Element {
   } // constructor end
 
   getElement() {
-    const segmentGroup = create(this.namespace + "g")
+    const segmentGroup = d3.create(this.namespace + "g")
       .classed("radar-segment-group", true)
       .classed("radar-segment-group-level-" + this.segment.ringLevel, true);
 
@@ -65,7 +61,7 @@ export class RadarSegment extends D3Element {
   }
 
   static getItemBoundaryArc(arcParams, paddingAngle, padInnerRadius, padOuterRadius) {
-    const arcGenerator = arc();
+    const arcGenerator = d3.arc();
 
     const arcPathString = arcGenerator(arcParams);
     const paddedArcParams = {
@@ -76,7 +72,21 @@ export class RadarSegment extends D3Element {
     };
 
     const containingArcPathString = arcGenerator(paddedArcParams);
-    const containerPolygonPoints = flattenSVGPath(containingArcPathString);
+    // const containerPolygonPoints = flattenSVGPath(containingArcPathString);
+    // New version of flattenSVGPath.  Create in-memory SVG and use getPointAtLength
+    const pathNode = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    pathNode.setAttributeNS(null, 'd', containingArcPathString);
+
+    let totalLength = pathNode.getTotalLength();
+    let intersections = 27;
+    let segmentLength = totalLength/intersections;
+
+    const containerPolygonPoints = [];
+    for(var i = 0; i <= intersections; i ++){
+      const pt = pathNode.getPointAtLength(i*segmentLength);
+      containerPolygonPoints.push([pt.x, pt.y]);
+    }
+    // End new
 
     return containerPolygonPoints;
   }
@@ -85,7 +95,7 @@ export class RadarSegment extends D3Element {
   // Debug displays
   ////////////////////////////////////////////////////////////////////////////////////////////////
   getDebugElement() {
-    const debugGroup = create(this.namespace + "g").classed("radar-segment-debug", true);
+    const debugGroup = d3.create(this.namespace + "g").classed("radar-segment-debug", true);
 
     // item dots
     debugGroup

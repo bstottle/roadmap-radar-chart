@@ -1,29 +1,10 @@
-import { create, select } from "d3-selection";
-import { pie } from "d3-shape";
-import { sum } from "d3-array";
-import { DEFAULT_ITEM_MARKER_CONFIG, ItemMarker, ItemMarkerConfig } from "./ItemMarker.js";
-import { D3Element } from "../D3Element.js";
-import {
-  CatInfo,
-  SliceProcessed,
-  CatInfoSubSlice,
-  RadarContentProcessed,
-  SubSliceProcessed,
-  RadarItemProcessed,
-  SegmentProcessed,
-} from "../DataSource/RadarDataSource.js";
-
+import { DEFAULT_ITEM_MARKER_CONFIG, ItemMarker } from "./ItemMarker.js";
+import { D3Element } from "./D3Element.js";
 import { RadarSegment } from "./RadarSegment.js";
-import { degToRad } from "../geometricUtils.js";
-import {
-  calculateAnchorPlacement,
-  nestedAssign,
-  RecursivePartial,
-  scaleProportional,
-  TextPlacement,
-} from "../utils.js";
+import { degToRad } from "./geometricUtils.js";
+import { calculateAnchorPlacement, nestedAssign, scaleProportional } from "./utils.js";
 
-export const DEFAULT_RADAR_PIE_CONFIG = {
+const DEFAULT_RADAR_PIE_CONFIG = {
   outerRadius: 250,
   innerRadius: 2,
 
@@ -85,7 +66,7 @@ export class RadarPie extends D3Element {
 
       ring.innerRadius =
         this.config.innerRadius +
-        sum(this.radarContent.rings, (r, idx) => (idx < ringLevel ? r.radius + this.config.ringPadding : 0));
+        d3.sum(this.radarContent.rings, (r, idx) => (idx < ringLevel ? r.radius + this.config.ringPadding : 0));
 
       ring.radius = scaledRadiuses[ringLevel];
     });
@@ -98,7 +79,7 @@ export class RadarPie extends D3Element {
       this.config.minSubSliceAngle
     );
 
-    const subSliceGen = pie()
+    const subSliceGen = d3.pie()
       .sort(null)
       .value((d, idx) => scaledSubSlices[idx])
       .padAngle(degToRad(this.config.subSlicePadAngle));
@@ -188,7 +169,7 @@ export class RadarPie extends D3Element {
   } // end constructor
 
   getElement() {
-    const pieGroup = create(this.namespace + "g").classed("radar-pie-group", true);
+    const pieGroup = d3.create(this.namespace + "g").classed("radar-pie-group", true);
 
     ////////////////////////////////////////////////////////////////////////
     //  add top level groups first to maintain layer "painting" order  at one place
@@ -302,7 +283,7 @@ export class RadarPie extends D3Element {
       );
 
     sliceGroup.each((slice, idx, nodes) => {
-      const el = select(nodes[idx]).selectAll(".radar-subSlice-group");
+      const el = d3.select(nodes[idx]).selectAll(".radar-subSlice-group");
       const subSliceGroup = el.data(slice.subSlices).join((enter) =>
         enter
           .append("g")
@@ -313,7 +294,7 @@ export class RadarPie extends D3Element {
       ////////////////////////////////////////////////////////////////////////
       //  add segments and item markers
       subSliceGroup.each((subSlice, idx, nodes) => {
-        const el = select(nodes[idx]).selectAll(".radar-segment-group");
+        const el = d3.select(nodes[idx]).selectAll(".radar-segment-group");
         const segmentGroup = el.data(subSlice.segments).join((enter) =>
           enter.append((segment, sIdx) => {
             // TODO: create RadarSegment objects at constructor (replace SegmentProcessed in radarContent )

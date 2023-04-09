@@ -1,8 +1,5 @@
-import { create } from "d3-selection";
-import { ItemMarker } from "./ItemMarker.js";
-import { CatInfo } from "../DataSource/RadarDataSource.js";
-import { D3Element } from "../D3Element.js";
-import { nestedAssign, RecursivePartial } from "../utils.js";
+import { D3Element } from "./D3Element.js";
+import { nestedAssign } from "./utils.js";
 
 const DEFAULT_ITEM_LEGEND_CONFIG = {
   // pos defaults set in RadarContainer!
@@ -23,7 +20,7 @@ export class ItemLegend extends D3Element {
   }
 
   getElement() {
-    const legendGroup = create(this.namespace + "svg")
+    const legendGroup = d3.create(this.namespace + "svg")
       .style("overflow", "visible")
       .datum(this.config)
       .classed("item-legend-group", true)

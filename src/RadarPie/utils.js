@@ -83,35 +83,28 @@ export function scaleProportional(items, targetTotal, targetMinValue = 0) {
  * @returns {TextPlacement}
  */
 export function calculateAnchorPlacement(startOrMidAngle, endAngle, cutOffDegree = { h: 7, v: 45 }) {
-  {
-    let rads;
-
-    if (!endAngle) rads = startOrMidAngle;
-    else rads = (endAngle - startOrMidAngle) / 2 + startOrMidAngle;
-
-    if (rads > degToRad(360) || rads < 0) throw new Error("Invalid rads for calculateAnchorPlacement: " + rads);
-
-    const anchor = {};
-    // circle top section
-    if (rads > degToRad(360 - cutOffDegree.h) || rads < degToRad(cutOffDegree.h)) anchor.hAnchor = "middle";
-    // bottom section
-    else if (rads > degToRad(180 - cutOffDegree.h) && rads < degToRad(180 + cutOffDegree.h)) anchor.hAnchor = "middle";
-    // right section
-    else if (rads >= degToRad(cutOffDegree.h) && rads <= degToRad(180 - cutOffDegree.h)) anchor.hAnchor = "start";
-    // left section
-    else if (rads >= degToRad(180 + cutOffDegree.h) && rads <= degToRad(360 - cutOffDegree.h)) anchor.hAnchor = "end";
-
-    // circle top section
-    if (rads > degToRad(360 - cutOffDegree.v) || rads < degToRad(cutOffDegree.v)) anchor.vAnchor = "alphabetic";
-    // bottom section
-    else if (rads > degToRad(180 - cutOffDegree.v) && rads < degToRad(180 + cutOffDegree.v))
-      anchor.vAnchor = "text-before-edge";
-    // right section
-    else if (rads >= degToRad(cutOffDegree.v) && rads <= degToRad(180 - cutOffDegree.v)) anchor.vAnchor = "middle";
-    // left section
-    else if (rads >= degToRad(180 + cutOffDegree.v) && rads <= degToRad(360 - cutOffDegree.v))
-      anchor.vAnchor = "middle";
-
-    return anchor;
-  }
+  let rads;
+  if (!endAngle) rads = startOrMidAngle;
+  else rads = (endAngle - startOrMidAngle) / 2 + startOrMidAngle;
+  if (rads > degToRad(360) || rads < 0) throw new Error("Invalid rads for calculateAnchorPlacement: " + rads);
+  const anchor = {};
+  // circle top section
+  if (rads > degToRad(360 - cutOffDegree.h) || rads < degToRad(cutOffDegree.h)) anchor.hAnchor = "middle";
+  // bottom section
+  else if (rads > degToRad(180 - cutOffDegree.h) && rads < degToRad(180 + cutOffDegree.h)) anchor.hAnchor = "middle";
+  // right section
+  else if (rads >= degToRad(cutOffDegree.h) && rads <= degToRad(180 - cutOffDegree.h)) anchor.hAnchor = "start";
+  // left section
+  else if (rads >= degToRad(180 + cutOffDegree.h) && rads <= degToRad(360 - cutOffDegree.h)) anchor.hAnchor = "end";
+  // circle top section
+  if (rads > degToRad(360 - cutOffDegree.v) || rads < degToRad(cutOffDegree.v)) anchor.vAnchor = "alphabetic";
+  // bottom section
+  else if (rads > degToRad(180 - cutOffDegree.v) && rads < degToRad(180 + cutOffDegree.v))
+    anchor.vAnchor = "text-before-edge";
+  // right section
+  else if (rads >= degToRad(cutOffDegree.v) && rads <= degToRad(180 - cutOffDegree.v)) anchor.vAnchor = "middle";
+  // left section
+  else if (rads >= degToRad(180 + cutOffDegree.v) && rads <= degToRad(360 - cutOffDegree.v))
+    anchor.vAnchor = "middle";
+  return anchor;
 }

@@ -5,7 +5,6 @@
 // http://bl.ocks.org/natebates/273b99ddf86e2e2e58ff
 //////////////
 
-import { quadtree } from "d3-quadtree";
 
 /**
  *
@@ -24,7 +23,7 @@ export function rectForceCollide(collidePadding = 10) {
   let nodes;
 
   function force(alpha) {
-    const quad = quadtree(
+    const quad = d3.quadtree(
       nodes,
       (d) => d.x,
       (d) => d.y
@@ -71,7 +70,7 @@ export function rectForceCollide(collidePadding = 10) {
     });
   }
 
-  force.initialize = (_) => (nodes = _);
+  force.initialize = (_nodes) => (nodes = _nodes);
 
   return force;
 }

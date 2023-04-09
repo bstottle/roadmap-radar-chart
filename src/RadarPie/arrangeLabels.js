@@ -1,9 +1,5 @@
-import { select } from "d3-selection";
-import { forceSimulation, Force, forceLink, forceX } from "d3-force";
-import { RadarError } from "../Errors.js";
-import { transformElementPoint } from "../geometricUtils.js";
-import { ItemLegendConfig } from "./ItemLegend.js";
-import { Slice, SubSlice } from "./RadarPie.js";
+import { RadarError } from "./Errors.js";
+import { transformElementPoint } from "./geometricUtils.js";
 import { rectForceCollide } from "./rectForceCollide.js";
 
 export function arrangeLabels(containerEl) {
@@ -18,7 +14,7 @@ export function arrangeLabels(containerEl) {
     const elementsToArrange = containerEl.selectAll(".label, .item-legend-group, .ring-legend-group");
 
     elementsToArrange.each((d, i, g) => {
-      const el = select(g[i]);
+      const el = d3.select(g[i]);
       const elNode = el.node();
 
       const bBox = elNode.getBBox();
@@ -68,16 +64,14 @@ export function arrangeLabels(containerEl) {
       };
 
       el.datum(labelBoxedData);
-      const insertedEl =
-        el.classed("item-legend-group") || el.classed("ring-legend-group")
-          ? el.insert("rect", "g").classed("legend-bBox", true)
-          : el
-              .insert("rect", "text")
-              .classed("subSlice-label-bBox", el.classed("subSlice-label"))
-              .classed("slice-label-bBox", el.classed("slice-label"));
+      const insertedEl = el.classed("item-legend-group") || el.classed("ring-legend-group")
+        ? el.insert("rect", "g").classed("legend-bBox", true)
+        : el
+            .insert("rect", "text")
+            .classed("subSlice-label-bBox", el.classed("subSlice-label"))
+            .classed("slice-label-bBox", el.classed("slice-label"));
 
       insertedEl
-
         .classed("label-bBox", true)
         .attr("width", labelBoxedData.origBBox.width)
         .attr("height", labelBoxedData.origBBox.height)
@@ -90,7 +84,7 @@ export function arrangeLabels(containerEl) {
     const containerBBox = containerEl.node().getBBox();
     const labelBBoxesSelection = containerEl.selectAll(".label, .item-legend-group, .ring-legend-group");
     const bBoxes = labelBBoxesSelection.data();
-    const labelAnchorPoints = (labelBBoxesSelection.data()).map((d) => {
+    const labelAnchorPoints = bBoxes.map((d) => {
       return {
         x: d.x, // We will set up forces to pull the bBoxes
         y: d.y,
@@ -105,9 +99,9 @@ export function arrangeLabels(containerEl) {
 
     const simLinks = bBoxes.map((node, idx) => ({ source: idx, target: idx + bBoxes.length }));
 
-    const simulation = forceSimulation(simNodes)
+    const simulation = d3.forceSimulation(simNodes)
       .alphaDecay(0.2)
-      .force("link", forceLink(simLinks).distance(0).strength(1))
+      .force("link", d3.forceLink(simLinks).distance(0).strength(1))
       .force(
         "collide",
         isolate(rectForceCollide(), (d) => !d.isAnchor)
@@ -115,15 +109,15 @@ export function arrangeLabels(containerEl) {
       .force(
         "forceXRight",
         isolate(
-          forceX(containerBBox.x + containerBBox.width).strength(0.1),
-          (d) => d.x > 0 && !d.isAnchor && !(d).isSubLabel
+          d3.forceX(containerBBox.x + containerBBox.width).strength(0.1),
+          (d) => d.x > 0 && !d.isAnchor && !d.isSubLabel
         )
       )
       .force(
         "forceXLeft",
         isolate(
-          forceX(containerBBox.x).strength(0.1),
-          (d) => d.x < 0 && !d.isAnchor && !(d).isSubLabel
+          d3.forceX(containerBBox.x).strength(0.1),
+          (d) => d.x < 0 && !d.isAnchor && !d.isSubLabel
         )
       );
 
@@ -179,7 +173,7 @@ function addDebugGroup(el, simNodes) {
 }
 
 function updateDebugElements(el) {
-  (el.selectAll(".label-debug-point-anchor"))
+  el.selectAll(".label-debug-point-anchor")
     .attr("cx", (d) => d.x - d.containerTopLeftOffset.x)
     .attr("cy", (d) => d.y - d.containerTopLeftOffset.y);
 }

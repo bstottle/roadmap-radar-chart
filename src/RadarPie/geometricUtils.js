@@ -1,14 +1,3 @@
-// TODO:
-//        - run polyfill from.babelrc?
-//        - get rid of geometric lib or use it for everything here instead of d3?
-//        - maybe get rid of AdaptiveLinearization lib, use d3.geo instead if it results smaller bundle
-import SVGPath from "svgpath";
-import AdaptiveLinearization from "adaptive-linearization";
-import * as geometric from "geometric";
-import { polygonArea, polygonContains } from "d3-polygon";
-
-// new SVG interface polyfill required for SVGPathElement.getPathData()  https://svgwg.org/specs/paths/#InterfaceSVGPathData
-import "path-data-polyfill";
 import { RadarError } from "./Errors.js";
 
 export function degToRad(degrees) {
@@ -107,9 +96,9 @@ export function getClosestPointOnPath(pathString, point) {
   // binary search for precise estimate
   precision *= 0.5;
   while (precision > 0.5) {
-    let before, after, beforeLength, afterLength, beforeDistance, afterDistance;
-    beforeLength = bestLength - precision;
-    afterLength = bestLength + precision;
+    let before, after, beforeDistance, afterDistance;
+    let beforeLength = bestLength - precision;
+    let afterLength = bestLength + precision;
 
     if (
       beforeLength >= 0 &&
@@ -185,7 +174,7 @@ export function distributePointsWithinBoundary(boundaryPolygonPoints, pointsCoun
 
     throw new RadarError(errorText);
   }
-  const area = Math.abs(polygonArea(boundaryPolygonPoints));
+  const area = Math.abs(d3.polygonArea(boundaryPolygonPoints));
   const polygonPathString = pointsToPathString(boundaryPolygonPoints);
 
   const boxToPolyAreaRatio = bBox.area / area;
@@ -244,7 +233,7 @@ export function spreadPoints(boundaryPolygonPoints, polygonPathString, bBox, min
         xSpacing / 2 + col * xSpacing + bBox.topLeft[0],
         ySpacing / 2 + row * ySpacing + bBox.topLeft[1],
       ];
-      if (polygonContains(boundaryPolygonPoints, point)) {
+      if (d3.polygonContains(boundaryPolygonPoints, point)) {
         pointsInside.push({ point, distance: -getClosestPointOnPath(polygonPathString, point).distance });
       }
     }

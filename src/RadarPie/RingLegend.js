@@ -1,10 +1,7 @@
-import { create } from "d3-selection";
-import { arc } from "d3-shape";
 
-import { D3Element } from "../D3Element.js";
-import { degToRad } from "../geometricUtils.js";
-import { nestedAssign, RecursivePartial } from "../utils.js";
-import { RingInfo } from "./RadarPie.js";
+import { D3Element } from "./D3Element.js";
+import { degToRad } from "./geometricUtils.js";
+import { nestedAssign } from "./utils.js";
 
 const DEFAULT_RING_LEGEND_CONFIG = {
   // pos defaults set in RadarContainer!
@@ -24,7 +21,7 @@ export class RingLegend extends D3Element {
     this.rings = rings;
     this.config = nestedAssign(DEFAULT_RING_LEGEND_CONFIG, config);
 
-    this.arcGenerator = arc();
+    this.arcGenerator = d3.arc();
 
     this.arcs = this.rings.map((ring) => ({
       innerRadius: ring.innerRadius * this.config.scale,
@@ -35,7 +32,7 @@ export class RingLegend extends D3Element {
   }
 
   getElement() {
-    const legendGroup = create(this.namespace + "svg")
+    const legendGroup = d3.create(this.namespace + "svg")
       .style("overflow", "visible")
       .datum(this.config)
       .classed("ring-legend-group", true)
