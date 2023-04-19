@@ -43,7 +43,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install mkdocs mkdocs-material
-          npm ci
+          npm install --save-dev rollup rollup-plugin-terser
       - name: Setup Pages
         uses: actions/configure-pages@v3
       - name: Bundle/minify
