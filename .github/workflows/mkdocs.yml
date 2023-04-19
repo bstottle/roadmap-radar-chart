@@ -48,7 +48,7 @@ jobs:
         uses: actions/configure-pages@v3
       - name: Bundle/minify
         run: |
-          rollup -c
+          npm run build
           cp ./README.md ./docs/index.md
           cp ./src/RadarPie/RadarPie.min.js ./docs/roadmap/RadarPie/
           cp ./src/roadmap.csv ./docs/roadmap/
