@@ -49,7 +49,7 @@ jobs:
           cp ./README.md ./docs/index.md
           cp ./src/RadarPie/RadarPie.min.js ./docs/roadmap/RadarPie/
           cp ./src/roadmap.csv ./docs/roadmap/
-          cp ./src/style.css ./docs/roadmap/
+          cp ./src/style.css ./docs/
           mkdocs build
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
