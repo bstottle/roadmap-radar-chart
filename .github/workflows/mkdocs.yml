@@ -49,6 +49,7 @@ jobs:
       - name: Bundle/minify
         run: |
           npm run build
+          mkdir -p ./docs/roadmap/RadarPie
           cp ./README.md ./docs/index.md
           cp ./src/RadarPie/RadarPie.min.js ./docs/roadmap/RadarPie/
           cp ./src/roadmap.csv ./docs/roadmap/
